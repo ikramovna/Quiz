@@ -1,4 +1,6 @@
-from django.db.models import CharField, TextField, ForeignKey, CASCADE, BooleanField
+from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
+from django.db.models import CharField, TextField, ForeignKey, CASCADE, BooleanField, EmailField, DateTimeField
 
 from shared.models import BaseModel
 
@@ -20,6 +22,8 @@ class Choice(BaseModel):
 
 
 class UserAnswer(BaseModel):
-    user = ForeignKey('User', CASCADE)
+    user = ForeignKey('auth.User', CASCADE)
+    category = ForeignKey("Category", CASCADE)
     question = ForeignKey('Question', CASCADE)
-    answer = BooleanField()
+    answer = ForeignKey("Choice", CASCADE)
+    end = BooleanField(default=False)
