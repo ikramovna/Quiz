@@ -16,6 +16,7 @@ urlpatterns = [
     path('token', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/v1/', include('mirahmad.urls')),
+    path('auth/', include('mirahmad.auth'))
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
