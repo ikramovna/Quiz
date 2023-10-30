@@ -1,10 +1,7 @@
-import random
-
-from django.core.cache import cache
 from django.utils.translation import gettext_lazy as _
+from rest_framework.exceptions import ValidationError
 
 from mirahmad.models import Question, Choice, UserAnswer
-from templated_mail.mail import BaseEmailMessage
 
 
 class Messages:
@@ -20,22 +17,6 @@ class Messages:
     CANNOT_CREATE_USER_ERROR = _("Unable to create account.")
 
 
-class ActivationEmail(BaseEmailMessage):
-    template_name = "activation.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['activation_code'] = random.randint(100000, 999999)
-
-        setKey(
-            key=context.get('email'),
-
-            value=context.get('activation_code'),
-            timeout=None
-        )
-        return context
-
-
 def check_is_update(validated_data):
     if UserAnswer.objects.filter(category_id=validated_data['category'],
                                  user=validated_data['user']):
@@ -46,21 +27,14 @@ def check_is_update(validated_data):
 
 
 def list_user_answers(user_answers):
-    c = 0
-    cor = 0
+    c, cor = 0, 0
     for user_answer in user_answers:
         c += 1
-        question = Question.objects.get(id=user_answer.question.id)
-        choice_answer = Choice.objects.get(id=user_answer.answer.id)
-
+        question, choice_answer = Question.objects.get(id=user_answer.question.id), Choice.objects.get(
+            id=user_answer.answer.id)
         if find_is_correct(question, choice_answer):
             cor += 1
-
-    d = {
-        'is_correct': cor,
-        'count': c,
-    }
-    return d
+    return {'is_correct': cor, 'count': c}
 
 
 def find_is_correct(question, choice_answer):
@@ -69,21 +43,36 @@ def find_is_correct(question, choice_answer):
             return i.is_correct
 
 
-def setKey(key, value, timeout=None):
-    return cache.set(key, value, timeout=timeout)
+def create_end_is_false(validated_data):
+    if check_is_update(validated_data) is False:
+        return super().create(validated_data)
+    else:
+        user_answer = UserAnswer.objects.filter(
+            category_id=validated_data['category'],
+            user=validated_data['user'],
+            question_id=validated_data['question']
+        ).first()
+        if user_answer:
+            return super().update(user_answer, validated_data)
+        else:
+            raise ValidationError("UserAnswer not found for update")
 
 
-def addKey(key, value, timeout=None):
-    return cache.add(key, value, timeout=timeout)
+def create_end_is_true(validated_data):
+    if check_is_update(validated_data) is False:
+        UserAnswer.objects.create(validated_data)
+        user_answers = UserAnswer.objects.filter(category_id=validated_data['category'])
 
-
-def getKey(key):
-    return cache.get(key)
-
-
-def deleteKey(key):
-    return cache.delete(key)
-
-
-def getAllKey(pattern):
-    return cache.keys(pattern)
+        return list_user_answers(user_answers)
+    else:
+        user_answer = UserAnswer.objects.filter(
+            category_id=validated_data['category'],
+            user=validated_data['user'],
+            question_id=validated_data['question']
+        ).first()
+        if user_answer:
+            super().update(user_answer, validated_data)
+            user_answers = UserAnswer.objects.filter(category_id=validated_data['category'])
+            return list_user_answers(user_answers)
+        else:
+            raise ValidationError("UserAnswer not found for update")

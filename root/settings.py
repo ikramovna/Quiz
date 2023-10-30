@@ -89,7 +89,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 # User Auth
-AUTH_USER_MODEL = 'mirahmad.User'
+# AUTH_USER_MODEL = 'mirahmad.User'
 
 LANGUAGE_CODE = 'en-us'
 
