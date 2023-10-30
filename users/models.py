@@ -44,8 +44,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['full_name', 'email']
 
+
 def getKey(key):
     return cache.get(key)
+
 
 def setKey(key, value, timeout):
     cache.set(key, value, timeout)

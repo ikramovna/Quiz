@@ -10,7 +10,6 @@ from users.serializers import (UserRegisterSerializer, CheckActivationCodeSerial
                                ResetPasswordConfirmSerializer)
 
 
-
 class UserRegisterCreateAPIView(CreateAPIView):
     serializer_class = UserRegisterSerializer
 
@@ -31,9 +30,7 @@ class CheckActivationCodeGenericAPIView(GenericAPIView):
         user = getKey(key=data['email'])['user']
         user.is_active = True
         user.save()
-        return Response({"message": "Your email has been confirmed"},
-                        status=status.HTTP_200_OK
-                        )
+        return Response({"message": "Your email has been confirmed"}, status=status.HTTP_200_OK)
 
 
 class ResetPasswordView(CreateAPIView):
