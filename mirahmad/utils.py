@@ -1,7 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework.exceptions import ValidationError
 
-from mirahmad.models import Question, Choice, UserAnswer
+from mirahmad.models import UserAnswer
 
 
 class Messages:
@@ -18,22 +18,17 @@ class Messages:
 
 
 def check_is_update(validated_data):
-    if UserAnswer.objects.filter(category_id=validated_data['category'],
-                                 user=validated_data['user']):
-        print(validated_data)
-        return True
-    else:
-        return False
+    return UserAnswer.objects.filter(
+        category=validated_data['category'],
+        user=validated_data['user']
+    ).exists()
 
 
 def list_user_answers(user_answers):
-    c, cor = 0, 0
-    for user_answer in user_answers:
-        c += 1
-        question, choice_answer = Question.objects.get(id=user_answer.question.id), Choice.objects.get(
-            id=user_answer.answer.id)
-        if find_is_correct(question, choice_answer):
-            cor += 1
+    user_answers = user_answers.select_related('question__choice')
+    c = user_answers.count()
+    cor = user_answers.filter(question__choice__is_correct=True).count()
+
     return {'is_correct': cor, 'count': c}
 
 
@@ -45,34 +40,41 @@ def find_is_correct(question, choice_answer):
 
 def create_end_is_false(validated_data):
     if check_is_update(validated_data) is False:
-        return super().create(validated_data)
+        user_answer = UserAnswer(**validated_data)
+        user_answer.save()
+        return user_answer
     else:
         user_answer = UserAnswer.objects.filter(
-            category_id=validated_data['category'],
+            category=validated_data['category'],
             user=validated_data['user'],
-            question_id=validated_data['question']
+            question=validated_data['question']
         ).first()
         if user_answer:
-            return super().update(user_answer, validated_data)
+            for attr, value in validated_data.items():
+                setattr(user_answer, attr, value)
+            user_answer.save()
+            return user_answer
         else:
             raise ValidationError("UserAnswer not found for update")
 
 
 def create_end_is_true(validated_data):
     if check_is_update(validated_data) is False:
-        UserAnswer.objects.create(validated_data)
-        user_answers = UserAnswer.objects.filter(category_id=validated_data['category'])
+        UserAnswer(**validated_data).save()
+        user_answers = UserAnswer.objects.filter(category=validated_data['category'])
 
         return list_user_answers(user_answers)
     else:
         user_answer = UserAnswer.objects.filter(
-            category_id=validated_data['category'],
+            category=validated_data['category'],
             user=validated_data['user'],
-            question_id=validated_data['question']
+            question=validated_data['question']
         ).first()
         if user_answer:
-            super().update(user_answer, validated_data)
-            user_answers = UserAnswer.objects.filter(category_id=validated_data['category'])
+            for attr, value in validated_data.items():
+                setattr(user_answer, attr, value)
+            user_answer.save()
+            user_answers = UserAnswer.objects.filter(category=validated_data['category'])
             return list_user_answers(user_answers)
         else:
             raise ValidationError("UserAnswer not found for update")
