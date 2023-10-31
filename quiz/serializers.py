@@ -7,6 +7,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     def get_questions(self, obj):
         questions = Question.objects.filter(category=obj)
+
         result = []
         for question in questions:
             choices = Choice.objects.filter(question=question)
@@ -26,8 +27,13 @@ class CategoryListSerializers(serializers.ModelSerializer):
         fields = ['id', 'title', 'description']
 
 
+class AnswerSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField()
+    answer_id = serializers.IntegerField()
+
+
 class UserAnswerSerializers(serializers.ModelSerializer):
-    answers = serializers.ListField(child=serializers.DictField())
+    answers = AnswerSerializer(many=True)
 
     class Meta:
         model = UserAnswer
@@ -37,8 +43,14 @@ class UserAnswerSerializers(serializers.ModelSerializer):
         category = Category.objects.filter(pk=validated_data['category'].id).first()
         cor = 0
         for answer_data in validated_data['answers']:
-            question = Question.objects.get(pk=answer_data['question_id'])
-            choice = Choice.objects.get(pk=answer_data['answer_id'])
+            try:
+                question = Question.objects.get(pk=answer_data['question_id'])
+            except Question.DoesNotExist:
+                raise serializers.ValidationError(detail="question not found")
+            try:
+                choice = Choice.objects.get(pk=answer_data['answer_id'])
+            except Choice.DoesNotExist:
+                raise serializers.ValidationError(detail="answer not found")
             user_answer, created = UserAnswer.objects.get_or_create(
                 user=self.context["request"].user,
                 category=category, question=question, defaults={'answer': choice})
