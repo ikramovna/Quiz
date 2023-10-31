@@ -26,8 +26,13 @@ class CategoryListSerializers(serializers.ModelSerializer):
         fields = ['id', 'title', 'description']
 
 
+class AnswerSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField()
+    answer_id = serializers.IntegerField()
+
+
 class UserAnswerSerializers(serializers.ModelSerializer):
-    answers = serializers.ListField(child=serializers.DictField())
+    answers = AnswerSerializer(many=True)
 
     class Meta:
         model = UserAnswer
