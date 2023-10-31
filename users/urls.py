@@ -5,10 +5,10 @@ from users.views import (UserRegisterCreateAPIView, CheckActivationCodeGenericAP
                          ResetPasswordConfirmView)
 
 urlpatterns = [
-    path('api/v1/register', UserRegisterCreateAPIView.as_view()),
-    path('api/v1/activate-code', CheckActivationCodeGenericAPIView.as_view()),
-    path('api/v1/reset-password', ResetPasswordView.as_view()),
-    path('api/v1/reset-password-confirm', ResetPasswordConfirmView.as_view()),
-    path('api/v1/login', TokenObtainPairView.as_view()),
+    path('register', UserRegisterCreateAPIView.as_view()),
+    path('activate-code', CheckActivationCodeGenericAPIView.as_view()),
+    path('reset-password', ResetPasswordView.as_view()),
+    path('reset-password-confirm', ResetPasswordConfirmView.as_view()),
+    path('login', TokenObtainPairView.as_view()),
 
 ]
