@@ -29,6 +29,7 @@ class Choice(BaseModel):
 
 class UserAnswer(BaseModel):
     user = models.ForeignKey('auth.User', models.CASCADE)
+    category = models.ForeignKey("Category", on_delete=models.CASCADE)
     question = models.ForeignKey('quize.Question', models.CASCADE)
     answer = models.BooleanField()
 

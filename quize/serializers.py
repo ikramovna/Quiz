@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from quize.models import Category, Question, Choice
+from quize.models import Category, Question, Choice, UserAnswer
 
 
 class CategoryListSerializer(serializers.ModelSerializer):
@@ -31,37 +31,11 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
         fields = ['questions']
 
 
-class UserAnswerSerializer(serializers.Serializer):
+class UserAnswerSerializers(serializers.Serializer):
     category_id = serializers.IntegerField()
     answers = serializers.ListField(
         child=serializers.DictField(
-            child=serializers.IntegerField(required=True, allow_null=False, min_value=1),
-        ),
+            child=serializers.IntegerField(),
+            allow_empty=False
+        )
     )
-
-# class ChoicesListSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Choice
-#         fields = ('answer',)
-#
-#
-# class QuestionsListSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Question
-#         fields = ('question',)
-#
-#     def to_representation(self, instance: Question):
-#         rep = super().to_representation(instance)
-#         rep['answers'] = ChoicesListSerializer(instance, many=True).data
-#         return rep
-#
-#
-# class CategoryDetailSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Category
-#         fields = ('id',)
-#
-#     def to_representation(self, instance: Category):
-#         rep = super().to_representation(instance)
-#         rep['questions'] = QuestionsListSerializer(instance.question_set.all(), many=True).data
-#         return rep
