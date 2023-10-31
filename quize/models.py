@@ -1,25 +1,36 @@
-from django.db.models import CharField, TextField, ForeignKey, CASCADE, BooleanField
-
+from django.db import models
 from shared.models import BaseModel
 
 
-class Category(BaseModel):
-    title = CharField(max_length=255)
-    description = TextField()
+class Category(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.title
 
 
 class Question(BaseModel):
-    category = ForeignKey('Category', CASCADE)
-    question = TextField()
+    category = models.ForeignKey('quize.Category', models.CASCADE)
+    question = models.TextField()
+
+    def __str__(self):
+        return self.question
 
 
 class Choice(BaseModel):
-    question = ForeignKey('Question', CASCADE, related_name='choice')
-    answer = CharField(max_length=200)
-    is_correct = BooleanField(default=False)
+    question = models.ForeignKey('quize.Question', models.CASCADE, related_name='choice')
+    answer = models.CharField(max_length=200)
+    is_correct = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.answer
 
 
 class UserAnswer(BaseModel):
-    user = ForeignKey('User', CASCADE)
-    question = ForeignKey('Question', CASCADE)
-    answer = BooleanField()
+    user = models.ForeignKey('auth.User', models.CASCADE)
+    question = models.ForeignKey('quize.Question', models.CASCADE)
+    answer = models.BooleanField()
+
+
+
