@@ -1,3 +1,6 @@
+from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.models import PermissionsMixin
+from django.db import models
 from django.db.models import CharField, TextField, ForeignKey, CASCADE, BooleanField
 
 from shared.models import BaseModel
@@ -20,6 +23,7 @@ class Choice(BaseModel):
 
 
 class UserAnswer(BaseModel):
-    user = ForeignKey('User', CASCADE)
-    question = ForeignKey('Question', CASCADE)
-    answer = BooleanField()
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    category = models.ForeignKey("Category", on_delete=models.CASCADE)
+    question = models.ForeignKey('Question', on_delete=models.CASCADE)
+    answer = models.ForeignKey("Choice", on_delete=models.CASCADE)
