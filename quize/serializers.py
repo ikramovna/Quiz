@@ -31,11 +31,11 @@ class CategoryDetailSerializer(serializers.ModelSerializer):
         fields = ['questions']
 
 
+class AnswerSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField()
+    answer_id = serializers.IntegerField()
+
+
 class UserAnswerSerializers(serializers.Serializer):
     category_id = serializers.IntegerField()
-    answers = serializers.ListField(
-        child=serializers.DictField(
-            child=serializers.IntegerField(),
-            allow_empty=False
-        )
-    )
+    answers = AnswerSerializer(many=True)

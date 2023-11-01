@@ -39,10 +39,8 @@ class PostUserAnswerApiView(CreateAPIView):
             except Choice.DoesNotExist:
                 pass
 
-        result_message = f"Your result: {correct_answers} from {total_questions}"
-
         response_data = {
-            "result_message": result_message,
+            "result_message": f"Your result: {correct_answers} from {total_questions}",
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
