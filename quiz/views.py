@@ -49,3 +49,31 @@ class SendMailAPIView(GenericAPIView):
         except Exception as e:
             return Response({'success': False, 'message': str(e)})
         return Response({'success': True, 'message': 'You message successfully sent!'})
+
+
+class UserAnswersListView(ListAPIView):
+    def list(self, request, *args, **kwargs):
+        user = request.user
+
+        user_answers = UserAnswer.objects.filter(user=user)
+
+        response_data = []
+
+        categories = Category.objects.all()
+        for category in categories:
+            category_id = category.id
+            question_count = 0
+            is_correct = 0
+
+            for user_answer in user_answers.filter(category=category):
+                question_count += 1
+                if user_answer.answer.is_correct:
+                    is_correct += 1
+
+            response_data.append({
+                'category_id': category_id,
+                'question_count': question_count,
+                'is_correct': is_correct,
+            })
+
+        return Response(response_data)
