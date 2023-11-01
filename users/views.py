@@ -2,6 +2,7 @@ import random
 from django.core.mail import send_mail
 from rest_framework import status
 from rest_framework.generics import GenericAPIView, CreateAPIView
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from users.models import User, getKey
 from users.serializers import (UserRegisterSerializer, CheckActivationCodeSerializer, ResetPasswordSerializer,
@@ -10,6 +11,7 @@ from users.serializers import (UserRegisterSerializer, CheckActivationCodeSerial
 
 class UserRegisterCreateAPIView(CreateAPIView):
     serializer_class = UserRegisterSerializer
+    renderer_classes = [JSONRenderer]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -20,6 +22,7 @@ class UserRegisterCreateAPIView(CreateAPIView):
 
 class CheckActivationCodeGenericAPIView(GenericAPIView):
     serializer_class = CheckActivationCodeSerializer
+    renderer_classes = [JSONRenderer]
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -33,6 +36,7 @@ class CheckActivationCodeGenericAPIView(GenericAPIView):
 
 class ResetPasswordView(CreateAPIView):
     serializer_class = ResetPasswordSerializer
+    renderer_classes = [JSONRenderer]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -62,6 +66,7 @@ class ResetPasswordView(CreateAPIView):
 
 class ResetPasswordConfirmView(CreateAPIView):
     serializer_class = ResetPasswordConfirmSerializer
+    renderer_classes = [JSONRenderer]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
