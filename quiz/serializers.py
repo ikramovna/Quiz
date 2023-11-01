@@ -67,3 +67,9 @@ class SendEmailSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=100)
     phone = serializers.CharField(max_length=55)
     email = serializers.EmailField()
+
+
+class UserAnswerModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserAnswer
+        fields = '__all__'
