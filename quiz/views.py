@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.exceptions import AuthenticationFailed
 
 from .models import Category
 from .serializers import CategoryListSerializers, CategorySerializer, UserAnswerSerializers, SendEmailSerializer
@@ -22,6 +23,8 @@ class PostUserAnswerApiView(CreateAPIView):
     serializer_class = UserAnswerSerializers
 
     def create(self, request, *args, **kwargs):
+        if request.user.is_anonymous:
+            raise AuthenticationFailed('You must be login')
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         result = serializer.save()
