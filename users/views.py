@@ -93,3 +93,17 @@ class ResetPasswordConfirmView(CreateAPIView):
                 return Response({"detail": "Invalid activation code."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GetMeView(APIView):
+    def get(self, request):
+        print(request.user)
+        if request.user.is_authenticated:
+            user_data = {
+                'id': request.user.id,
+                'full_name': request.user.full_name,
+                'username': request.user.username,
+                'email': request.user.email,
+            }
+            return Response(user_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'User is not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
