@@ -1,21 +1,22 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
 
 from users.models import User
 from .models import Category, Question, Choice
 
 
 @admin.register(Category)
-class CategoryModelAdmin(admin.ModelAdmin):
+class CategoryModelAdmin(ImportExportModelAdmin):
     list_display = ("title", "description")
 
 
 @admin.register(Question)
-class QuestionModelAdmin(admin.ModelAdmin):
+class QuestionModelAdmin(ImportExportModelAdmin):
     list_display = ("category", "question")
 
 
 @admin.register(Choice)
-class ChoiceModelAdmin(admin.ModelAdmin):
+class ChoiceModelAdmin(ImportExportModelAdmin):
     list_display = ("question", "answer", "is_correct")
 
 
@@ -25,3 +26,4 @@ class UserAdmin(admin.ModelAdmin):
 
 
 admin.site.register(User, UserAdmin)
+
