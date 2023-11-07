@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from users.models import User, getKey
 from users.serializers import (UserRegisterSerializer, CheckActivationCodeSerializer, ResetPasswordSerializer,
                                ResetPasswordConfirmSerializer)
-
+from rest_framework.views import APIView
 
 class UserRegisterCreateAPIView(CreateAPIView):
     serializer_class = UserRegisterSerializer
