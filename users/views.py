@@ -1,13 +1,16 @@
 import random
+
 from django.core.mail import send_mail
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, CreateAPIView
+from rest_framework.generics import GenericAPIView, CreateAPIView, RetrieveUpdateAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
+
 from users.models import User, getKey
 from users.serializers import (UserRegisterSerializer, CheckActivationCodeSerializer, ResetPasswordSerializer,
-                               ResetPasswordConfirmSerializer)
-from rest_framework.views import APIView
+                               ResetPasswordConfirmSerializer, UserSerializer)
+
 
 class UserRegisterCreateAPIView(CreateAPIView):
     serializer_class = UserRegisterSerializer
@@ -94,16 +97,11 @@ class ResetPasswordConfirmView(CreateAPIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class GetMeView(APIView):
-    def get(self, request):
-        print(request.user)
-        if request.user.is_authenticated:
-            user_data = {
-                'id': request.user.id,
-                'full_name': request.user.full_name,
-                'username': request.user.username,
-                'email': request.user.email,
-            }
-            return Response(user_data, status=status.HTTP_200_OK)
-        else:
-            return Response({'detail': 'User is not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
+
+class UserUpdateView(RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user

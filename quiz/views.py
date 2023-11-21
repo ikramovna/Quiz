@@ -1,10 +1,16 @@
+from collections import defaultdict
+
+from django.db.models import IntegerField
+from django.db.models import Sum, Case, When, Count
+from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.views import APIView
 
-from .models import Category
+from .models import Category, UserAnswer
 from .serializers import CategoryListSerializers, CategorySerializer, UserAnswerSerializers, SendEmailSerializer
 from .tasks import send_email_customer
 
@@ -77,3 +83,38 @@ class UserAnswersListView(ListAPIView):
             })
 
         return Response(response_data)
+
+
+class UserAnswerStatistics(APIView):
+    def get(self, request):
+        if request.user.is_anonymous:
+            raise AuthenticationFailed('You must be logged in')
+
+        user = request.user
+        user_answers = UserAnswer.objects.filter(user=user)
+
+        statistics = {
+            "all": {
+                "correct": f"{user_answers.filter(answer__is_correct=True).count()}/{user_answers.count()}"
+            }
+        }
+
+        grouped_answers = user_answers.values('question__category__title', 'question__created_at').annotate(
+            correct_count=Sum(Case(When(answer__is_correct=True, then=1), default=0, output_field=IntegerField())),
+            total_count=Count('id')
+        )
+
+        date_statistics = defaultdict(lambda: defaultdict(lambda: [0, 0]))
+
+        for group in grouped_answers:
+            date = group['question__created_at'].date().strftime('%d.%m.%Y')
+            category = group['question__category__title']
+
+            date_statistics[date][category][0] += group['correct_count']
+            date_statistics[date][category][1] += group['total_count']
+
+        for date, categories in date_statistics.items():
+            statistics[date] = [{"category": category, "correct": f"{correctness[0]}/{correctness[1]}"} for
+                                category, correctness in categories.items()]
+
+        return JsonResponse(statistics)

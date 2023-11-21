@@ -66,3 +66,9 @@ class ResetPasswordConfirmSerializer(serializers.Serializer):
     activation_code = serializers.CharField()
     new_password = serializers.CharField()
     confirm_password = serializers.CharField()
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', "full_name"]
