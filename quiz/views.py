@@ -89,20 +89,12 @@ class UserAnswerStatistics(APIView):
     def get(self, request):
         if request.user.is_anonymous:
             raise AuthenticationFailed('You must be logged in')
-
         user = request.user
         user_answers = UserAnswer.objects.filter(user=user)
 
-        statistics = {
-            "all": {
-                "correct": f"{user_answers.filter(answer__is_correct=True).count()}/{user_answers.count()}"
-            }
-        }
-
         grouped_answers = user_answers.values('question__category__title', 'question__created_at').annotate(
             correct_count=Sum(Case(When(answer__is_correct=True, then=1), default=0, output_field=IntegerField())),
-            total_count=Count('id')
-        )
+            total_count=Count('id'))
 
         date_statistics = defaultdict(lambda: defaultdict(lambda: [0, 0]))
 
@@ -113,8 +105,10 @@ class UserAnswerStatistics(APIView):
             date_statistics[date][category][0] += group['correct_count']
             date_statistics[date][category][1] += group['total_count']
 
-        for date, categories in date_statistics.items():
-            statistics[date] = [{"category": category, "correct": f"{correctness[0]}/{correctness[1]}"} for
-                                category, correctness in categories.items()]
+        statistics = [{"category": category, "correct": f"{correctness[0]}/{correctness[1]}", "time": date}
+                      for date, categories in date_statistics.items()
+                      for category, correctness in categories.items()]
+        if not statistics:
+            return JsonResponse({}, safe=False)
 
-        return JsonResponse(statistics)
+        return JsonResponse(statistics, safe=False)
