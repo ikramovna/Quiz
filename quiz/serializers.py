@@ -1,6 +1,8 @@
+import uuid
+
 from rest_framework import serializers
 
-from .models import Category, Question, Choice, UserAnswer
+from .models import Category, Question, Choice, UserAnswer, History
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -43,6 +45,7 @@ class UserAnswerSerializers(serializers.ModelSerializer):
     def create(self, validated_data):
         category = Category.objects.filter(pk=validated_data['category'].id).first()
         cor = 0
+        uuuid = uuid.uuid4()
         for answer_data in validated_data['answers']:
             try:
                 question = Question.objects.get(pk=answer_data['question_id'])
@@ -55,6 +58,11 @@ class UserAnswerSerializers(serializers.ModelSerializer):
             user_answer, created = UserAnswer.objects.get_or_create(
                 user=self.context["request"].user,
                 category=category, question=question, defaults={'answer': choice})
+
+            History.objects.create(
+                user=self.context["request"].user,
+                category=category, question=question, answer=choice, uuid=uuuid
+            )
             if not created:
                 user_answer.answer = choice
                 user_answer.save()

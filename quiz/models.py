@@ -27,3 +27,11 @@ class UserAnswer(BaseModel):
     category = models.ForeignKey("Category", on_delete=models.CASCADE)
     question = models.ForeignKey('Question', on_delete=models.CASCADE)
     answer = models.ForeignKey("Choice", on_delete=models.CASCADE)
+
+
+class History(BaseModel):
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    category = models.ForeignKey("Category", on_delete=models.CASCADE)
+    question = models.ForeignKey('Question', on_delete=models.CASCADE)
+    answer = models.ForeignKey("Choice", on_delete=models.CASCADE)
+    uuid = models.CharField(max_length=500)

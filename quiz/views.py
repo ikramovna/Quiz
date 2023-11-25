@@ -10,7 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Category, UserAnswer
+from .models import Category, UserAnswer, History
 from .serializers import CategoryListSerializers, CategorySerializer, UserAnswerSerializers, SendEmailSerializer
 from .tasks import send_email_customer
 
@@ -89,25 +89,37 @@ class UserAnswerStatistics(APIView):
     def get(self, request):
         if request.user.is_anonymous:
             raise AuthenticationFailed('You must be logged in')
+
         user = request.user
-        user_answers = UserAnswer.objects.filter(user=user)
+        user_answers = History.objects.filter(user=user)
 
-        grouped_answers = user_answers.values('question__category__title', 'question__created_at').annotate(
+        grouped_answers = user_answers.values('uuid', 'question__category__title',
+                                              'question__created_at').annotate(
             correct_count=Sum(Case(When(answer__is_correct=True, then=1), default=0, output_field=IntegerField())),
-            total_count=Count('id'))
+            total_count=Count('id')
+        )
 
-        date_statistics = defaultdict(lambda: defaultdict(lambda: [0, 0]))
+        date_statistics = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: {'correct': 0, 'total': 0})))
 
         for group in grouped_answers:
-            date = group['question__created_at'].date().strftime('%d.%m.%Y')
+            uuid = group['uuid']
+            date = group['question__created_at'].date().strftime('%d.%m.%Y %H:%M:%S')
             category = group['question__category__title']
 
-            date_statistics[date][category][0] += group['correct_count']
-            date_statistics[date][category][1] += group['total_count']
+            date_statistics[uuid][date][category]['correct'] += group['correct_count']
+            date_statistics[uuid][date][category]['total'] += group['total_count']
 
-        statistics = [{"category": category, "correct": f"{correctness[0]}/{correctness[1]}", "time": date}
-                      for date, categories in date_statistics.items()
-                      for category, correctness in categories.items()]
+        statistics = [
+            {
+                "category": category,
+                "correct": f"{correctness['correct']}/{correctness['total']}",
+                "time": date
+            }
+            for uuid, dates in date_statistics.items()
+            for date, categories in dates.items()
+            for category, correctness in categories.items()
+        ]
+
         if not statistics:
             return JsonResponse({}, safe=False)
 
