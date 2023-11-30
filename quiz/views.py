@@ -9,14 +9,16 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView,
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db import models
 
 from .models import Category, UserAnswer, History
-from .serializers import CategoryListSerializers, CategorySerializer, UserAnswerSerializers, SendEmailSerializer
+from .serializers import CategoryListSerializers, CategorySerializer, UserAnswerSerializers, SendEmailSerializer, \
+    FeedbackSerializers
 from .tasks import send_email_customer
 
 
 class CategoryListView(ListAPIView):
-    queryset = Category.objects.all()
+    queryset = Category.objects.annotate(questions_count=models.Count('questions'))
     serializer_class = CategoryListSerializers
 
 
@@ -124,3 +126,22 @@ class UserAnswerStatistics(APIView):
             return JsonResponse({}, safe=False)
 
         return JsonResponse(statistics, safe=False)
+
+
+class FeedbackAPIView(GenericAPIView):
+    serializer_class = FeedbackSerializers
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        try:
+            serializer = self.serializer_class(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            email = serializer.validated_data.get('email')
+            description = serializer.validated_data.get('description')
+            name = serializer.validated_data.get('name')
+            phone = serializer.validated_data.get('phone')
+
+            send_email_customer.delay(email, description, name, phone)
+        except Exception as e:
+            return Response({'success': False, 'message': str(e)})
+        return Response({'success': True, 'message': 'You message successfully sent!'})

@@ -2,7 +2,7 @@ import uuid
 
 from rest_framework import serializers
 
-from .models import Category, Question, Choice, UserAnswer, History
+from .models import Category, Question, Choice, UserAnswer, History, Feedback
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -25,9 +25,14 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class CategoryListSerializers(serializers.ModelSerializer):
+    questions_count = serializers.SerializerMethodField()
+
     class Meta:
         model = Category
-        fields = ['id', 'title', 'description']
+        fields = ['id', 'title', 'description', 'image', 'questions_count']
+
+    def get_questions_count(self, obj):
+        return obj.questions.count()
 
 
 class AnswerSerializer(serializers.Serializer):
@@ -82,3 +87,9 @@ class UserAnswerModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAnswer
         fields = '__all__'
+
+
+class FeedbackSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['name', 'email', 'description', 'phone']
