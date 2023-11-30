@@ -93,8 +93,10 @@ class UserAnswerStatistics(APIView):
             raise AuthenticationFailed('You must be logged in')
 
         user = request.user
-        user_answers = History.objects.filter(user=user)
 
+        user_answers = History.objects.filter(user=user)
+        if not user_answers.exists():
+            return Response([])
         grouped_answers = user_answers.values('uuid', 'question__category__title',
                                               'question__created_at').annotate(
             correct_count=Sum(Case(When(answer__is_correct=True, then=1), default=0, output_field=IntegerField())),
