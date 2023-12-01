@@ -1,5 +1,5 @@
 from collections import defaultdict
-
+from django.core.mail import send_mail
 from django.db.models import IntegerField
 from django.db.models import Sum, Case, When, Count
 from django.http import JsonResponse
@@ -11,9 +11,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import models
 
-from .models import Category, UserAnswer, History
+from root.settings import EMAIL_HOST_USER
+from .models import Category, UserAnswer, History, Feedback
 from .serializers import CategoryListSerializers, CategorySerializer, UserAnswerSerializers, SendEmailSerializer, \
-    FeedbackSerializers
+    FeedbackSerializers, FeedbackListSerializers
 from .tasks import send_email_customer
 
 
@@ -138,12 +139,20 @@ class FeedbackAPIView(GenericAPIView):
         try:
             serializer = self.serializer_class(data=request.data)
             serializer.is_valid(raise_exception=True)
-            email = serializer.validated_data.get('email')
-            description = serializer.validated_data.get('description')
-            name = serializer.validated_data.get('name')
-            phone = serializer.validated_data.get('phone')
-
-            send_email_customer.delay(email, description, name, phone)
+            serializer.save()
+            send_mail(
+                subject="Subject here",
+                message=f"Email: {serializer.validated_data.get('email')}\nDescription: {serializer.validated_data.get('description')}"
+                        f"\nName: {serializer.validated_data.get('name')}\nPhone: {serializer.validated_data.get('phone')}",
+                from_email=EMAIL_HOST_USER,
+                recipient_list=['mirahmadhacker2007@gmail.com'],
+                fail_silently=False,
+            )
         except Exception as e:
             return Response({'success': False, 'message': str(e)})
         return Response({'success': True, 'message': 'You message successfully sent!'})
+
+
+class FeedBackListApiView(ListAPIView):
+    queryset = Feedback.objects.all().order_by('-created_at')
+    serializer_class = FeedbackListSerializers

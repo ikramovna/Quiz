@@ -93,3 +93,9 @@ class FeedbackSerializers(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ['name', 'email', 'description', 'phone']
+
+
+class FeedbackListSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['name', 'email', 'description']

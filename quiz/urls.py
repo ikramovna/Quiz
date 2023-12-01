@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import CategoryListView, PostUserAnswerApiView, CategoryDetailView, SendMailAPIView, \
-    UserAnswerStatistics, FeedbackAPIView
+    UserAnswerStatistics, FeedbackAPIView, FeedBackListApiView
 
 urlpatterns = [
     path('category', CategoryListView.as_view()),
@@ -10,4 +10,5 @@ urlpatterns = [
     path("history", UserAnswerStatistics.as_view()),
     path('send_mail', SendMailAPIView.as_view()),
     path('feedback', FeedbackAPIView.as_view()),
+    path('feedback-list', FeedBackListApiView.as_view())
 ]
